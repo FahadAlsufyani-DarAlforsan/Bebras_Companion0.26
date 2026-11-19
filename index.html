@@ -188,8 +188,7 @@ footer .ft .enb{color:#777;text-align:center}
 .tick{position:relative;z-index:5;display:flex;align-items:stretch;direction:ltr;background:rgba(10,5,60,.72);border-block:1px solid var(--edge);overflow:hidden}
 .tick .tkp{flex:none;border:0;border-inline-end:1px solid var(--edge);background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:16px;width:44px;cursor:pointer}
 .tick .vp{flex:1;overflow:hidden;min-width:0;white-space:nowrap}
-.tick .trk{display:inline-flex;width:max-content;will-change:transform;-webkit-animation:tkmv var(--dur,60s) linear infinite;animation:tkmv var(--dur,60s) linear infinite}
-.tick .vp:hover .trk,.tick .vp:focus-within .trk,.tick.paused .trk{-webkit-animation-play-state:paused;animation-play-state:paused}
+.tick .trk{display:inline-flex;width:max-content;will-change:transform;-webkit-transform:translate3d(0,0,0);transform:translate3d(0,0,0)}
 .tick .grp{display:inline-flex;flex:none;align-items:center}
 .tick .it{display:inline-flex;align-items:center;gap:10px;padding:9px 26px;font-weight:600;font-size:15px;color:#fff;unicode-bidi:isolate}
 .tick .it[dir=rtl]{direction:rtl}.tick .it[dir=ltr]{direction:ltr}
@@ -197,9 +196,6 @@ footer .ft .enb{color:#777;text-align:center}
 .tick .lb{flex:none;border-radius:99px;padding:1px 12px;font-size:12px;font-weight:800;color:#05301f;background:var(--mint)}
 .tick .lb.n{background:var(--gold);color:#3d2a00}.tick .lb.t{background:#ff8ad4;color:#3b0a2c}
 .tick a{color:var(--mintsoft)}
-@-webkit-keyframes tkmv{from{-webkit-transform:translate3d(0,0,0)}to{-webkit-transform:translate3d(-50%,0,0)}}
-@keyframes tkmv{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
-@media (prefers-reduced-motion:reduce){.tick .trk{-webkit-animation:none;animation:none}.tick .vp{overflow-x:auto}.tick .grp[aria-hidden=true]{display:none}.tkp{display:none}}
 </style>
 </head>
 <body>

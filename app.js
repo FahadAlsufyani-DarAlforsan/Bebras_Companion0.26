@@ -157,7 +157,20 @@ function tickerHTML(){
   const grp=hid=>`<span class="grp"${hid?' aria-hidden="true"':''}>${tickItems().map(([k,[a,e]])=>`<span class="it" dir="${mode==='en'?'ltr':'rtl'}"><span class="lb ${k==='r'?'':k}">${ST(TKL[k][0],TKL[k][1])}</span><span>${mode==='en'?e:mode==='ar'?a:`${a} <span class="eni" style="margin:0 .3em">· ${e}</span>`}</span></span>`).join('')}</span>`;
   return `<button class="tkp" id="tkp" aria-pressed="false" aria-label="${ST('إيقاف/تشغيل الشريط','Pause/play the ticker')}" title="${ST('إيقاف/تشغيل','Pause/play')}">❚❚</button><div class="vp" tabindex="0"><div class="trk" id="trk">${grp(false)}${grp(true)}</div></div>`;
 }
-function setTick(){const t=$('trk');if(!t)return;const go=()=>{const w=t.scrollWidth/2;t.style.setProperty('--dur',Math.max(30,Math.round(w/70))+'s')};go();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(go)}
+let tkX=0,tkLast=0,tkOn=false,tkHover=false;
+function tkLoop(ts){
+  const t=$('trk');
+  if(tkLast&&t&&!tkHover&&!$('tick').classList.contains('paused')){
+    tkX+=Math.min((ts-tkLast)/1000,.1)*70;const w=t.scrollWidth/2;if(w>0&&tkX>=w)tkX-=w;
+    t.style.webkitTransform=t.style.transform=`translate3d(${-tkX}px,0,0)`;
+  }
+  tkLast=ts;requestAnimationFrame(tkLoop);
+}
+function setTick(){
+  const vp=document.querySelector('#tick .vp');
+  if(vp){vp.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse')tkHover=true});vp.addEventListener('pointerleave',()=>{tkHover=false})}
+  tkX=0;if(!tkOn){tkOn=true;requestAnimationFrame(tkLoop)}
+}
 
 /* ============ بناء الصفحة وتبديل اللغة ============ */
 function build(){
