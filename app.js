@@ -157,19 +157,33 @@ function tickerHTML(){
   const grp=hid=>`<span class="grp"${hid?' aria-hidden="true"':''}>${tickItems().map(([k,[a,e]])=>`<span class="it" dir="${mode==='en'?'ltr':'rtl'}"><span class="lb ${k==='r'?'':k}">${ST(TKL[k][0],TKL[k][1])}</span><span>${mode==='en'?e:mode==='ar'?a:`${a} <span class="eni" style="margin:0 .3em">· ${e}</span>`}</span></span>`).join('')}</span>`;
   return `<button class="tkp" id="tkp" aria-pressed="false" aria-label="${ST('إيقاف/تشغيل الشريط','Pause/play the ticker')}" title="${ST('إيقاف/تشغيل','Pause/play')}">❚❚</button><div class="vp" tabindex="0"><div class="trk" id="trk">${grp(false)}${grp(true)}</div></div>`;
 }
-let tkX=0,tkLast=0,tkOn=false,tkHover=false;
-function tkLoop(ts){
-  const t=$('trk');
-  if(tkLast&&t&&!tkHover&&!$('tick').classList.contains('paused')){
-    tkX+=Math.min((ts-tkLast)/1000,.1)*70;const w=t.scrollWidth/2;if(w>0&&tkX>=w)tkX-=w;
-    t.style.webkitTransform=t.style.transform=`translate3d(${-tkX}px,0,0)`;
-  }
-  tkLast=ts;requestAnimationFrame(tkLoop);
+/* التحريك: scrollLeft بمؤقّت (setInterval) — لا يعتمد على CSS animation ولا requestAnimationFrame،
+   ويتيح السحب اليدوي أيضاً؛ وإن لم يتحرك لأي سبب فنعود إلى transform. */
+const TK_SPEED=70;let tkTimer=0,tkPos=0,tkLastT=0,tkIdleUntil=0,tkHover=false,tkMode="scroll",tkChecked=0,tkRaf=0;
+const tkPaused=()=>tkHover||$('tick').classList.contains('paused')||Date.now()<tkIdleUntil||document.hidden;
+function tkStep(){
+  const vp=document.querySelector('#tick .vp'),t=$('trk');if(!vp||!t)return;
+  const now=performance.now(),dt=Math.min((now-(tkLastT||now))/1000,.2);tkLastT=now;
+  const w=t.scrollWidth/2;if(w<=0)return;
+  if(tkPaused()){tkPos=vp.scrollLeft;return}
+  tkPos+=dt*TK_SPEED;if(tkPos>=w)tkPos-=w;
+  if(tkMode==="scroll"){vp.scrollLeft=Math.round(tkPos)}
+  else{vp.scrollLeft=0;t.style.webkitTransform=t.style.transform=`translate3d(${-tkPos}px,0,0)`}
 }
 function setTick(){
-  const vp=document.querySelector('#tick .vp');
-  if(vp){vp.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse')tkHover=true});vp.addEventListener('pointerleave',()=>{tkHover=false})}
-  tkX=0;if(!tkOn){tkOn=true;requestAnimationFrame(tkLoop)}
+  const vp=document.querySelector('#tick .vp');if(!vp)return;
+  tkPos=0;tkMode="scroll";tkChecked=0;
+  vp.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse')tkHover=true});
+  vp.addEventListener('pointerleave',()=>{tkHover=false});
+  const hold=()=>{tkIdleUntil=Date.now()+2500};
+  ['touchstart','touchmove','wheel','pointerdown'].forEach(ev=>vp.addEventListener(ev,hold,{passive:true}));
+  vp.addEventListener('scroll',()=>{ // لفّ سلس عند السحب اليدوي
+    const w=$('trk').scrollWidth/2;if(!w)return;
+    if(Date.now()<tkIdleUntil){if(vp.scrollLeft>=w)vp.scrollLeft-=w;else if(vp.scrollLeft<=0)vp.scrollLeft+=w}
+  },{passive:true});
+  if(!tkTimer)tkTimer=setInterval(tkStep,33);
+  // تحقّق: إن لم يتحرك الشريط خلال 1.5 ثانية بدّل إلى transform
+  setTimeout(()=>{if(tkPaused())return;const s=vp.scrollLeft;setTimeout(()=>{if(!tkPaused()&&Math.abs(vp.scrollLeft-s)<1&&tkMode==="scroll"){tkMode="transform"}},1500)},800);
 }
 
 /* ============ بناء الصفحة وتبديل اللغة ============ */
